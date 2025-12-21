@@ -18,6 +18,19 @@ function getQueryClient() {
   return browserQueryClient;
 }
 
+function getBaseUrl() {
+  // Browser
+  if (typeof window !== 'undefined') return '';
+
+  // Vercel / production
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Local dev (Node.js)
+  return 'http://localhost:3000';
+}
+
 export function TRPCReactProvider({
   children,
 }: {
@@ -29,7 +42,7 @@ export function TRPCReactProvider({
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: '/api/trpc',
+          url: `${getBaseUrl()}/api/trpc`, // ✅ FIXED
         }),
       ],
     })
