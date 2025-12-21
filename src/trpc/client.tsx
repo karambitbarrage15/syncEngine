@@ -1,35 +1,21 @@
-// client.tsx
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import { useState } from 'react';
-import type { AppRouter } from './routers/_app';
 import { createTRPCReact } from '@trpc/react-query';
+import type { AppRouter } from './routers/_app';
 import { makeQueryClient } from './query-client';
 
-// Create the tRPC React hooks - FIXED: Use createTRPCReact correctly
 export const trpc = createTRPCReact<AppRouter>();
 
-// Browser query client singleton
-let browserQueryClient: QueryClient | undefined = undefined;
+let browserQueryClient: QueryClient | undefined;
 
 function getQueryClient() {
-  if (typeof window === 'undefined') {
-    return makeQueryClient();
-  } else {
-    if (!browserQueryClient) browserQueryClient = makeQueryClient();
-    return browserQueryClient;
+  if (!browserQueryClient) {
+    browserQueryClient = makeQueryClient();
   }
-}
-
-function getUrl() {
-  const base = (() => {
-    if (typeof window !== 'undefined') return '';
-    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-    return 'http://localhost:3000';
-  })();
-  return `${base}/api/trpc`;
+  return browserQueryClient;
 }
 
 export function TRPCReactProvider({
@@ -38,16 +24,12 @@ export function TRPCReactProvider({
   children: React.ReactNode;
 }) {
   const queryClient = getQueryClient();
+
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: getUrl(),
-          // headers() {
-          //   return {
-          //     // authorization: getAuthCookie(),
-          //   };
-          // },
+          url: '/api/trpc',
         }),
       ],
     })
