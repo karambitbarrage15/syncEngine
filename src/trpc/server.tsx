@@ -6,6 +6,8 @@ import { makeQueryClient } from './query-client';
 import {appRouter} from './routers/_app';
 import { createTRPCClient, httpLink } from '@trpc/client';
 import { dehydrate,HydrationBoundary } from '@tanstack/react-query';
+
+import superjson from "superjson";
 export const getQueryClient = cache(makeQueryClient);
 export const trpc=createTRPCOptionsProxy({
   ctx:createTRPCContext,

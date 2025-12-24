@@ -3,6 +3,9 @@ import { headers } from 'next/headers';
 import { TRPCError } from '@trpc/server';
 import { auth } from '@/lib/auth';
 import { polarClient } from '@/lib/polar';
+import { transform } from 'zod';
+import { transformer } from 'zod/v3';
+import superjson from "superjson";
 export const createTRPCContext = async () => {
   return { userId: 'user123' };
 };
@@ -12,7 +15,7 @@ export const createTRPCContext = async () => {
  * Should be done only once per backend!
  */
 const t = initTRPC.create();
-
+transformer:superjson;
 /**
  * Export reusable router and procedure helpers
  * that can be used throughout the router

@@ -6,7 +6,7 @@ import { HydrationBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 
 import { Workflow } from "lucide-react";
-import { WorkflowsContainer, WorkflowsList } from "@/features/workflows/components/workflows";
+import { WorkflowsContainer, WorkflowsList, WorkflowsLoading ,WorkflowsError} from "@/features/workflows/components/workflows";
 import type { SearchParams } from "nuqs";
 import { workflowsParams } from "@/features/workflows/params";
 import { workflowsParamsLoader } from "@/features/workflows/server/params-loader";
@@ -22,8 +22,8 @@ const params=await workflowsParamsLoader(searchParams);
   return (
     <WorkflowsContainer>
     <HydrateClient>
-      <ErrorBoundary fallback={<p>Error!</p>}>
-        <Suspense fallback={<p>Loading...</p>}>
+      <ErrorBoundary fallback={<WorkflowsError />}>
+        <Suspense fallback={<WorkflowsLoading />}>
           <WorkflowsList />
         </Suspense>
       </ErrorBoundary>
