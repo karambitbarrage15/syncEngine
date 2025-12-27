@@ -39,6 +39,13 @@ export const useSuspenseWorkflows = () => {
 };
 
 /* ------------------------------------------------------------------ */
+/* Fetch SINGLE Workflow (EDITOR – Suspense) ✅ IMPORTANT */
+/* ------------------------------------------------------------------ */
+
+export const useSuspenseWorkflow = (id: string) => {
+  return trpc.workflows.getOne.useSuspenseQuery({ id });
+};
+/* ------------------------------------------------------------------ */
 /* Remove Workflow */
 /* ------------------------------------------------------------------ */
 
@@ -57,6 +64,26 @@ export const useRemoveWorkflow = () => {
     },
     onError: (error) => {
       toast.error(`Failed to remove Workflow: ${error.message}`);
+    },
+  });
+};/**hook to update a workflow name */
+export const useUpdateWorkflowName = () => {
+  const router = useRouter();
+  const utils = trpc.useUtils(); // ✅ tRPC cache utils
+
+  return trpc.workflows.updateName.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Workflow "${data.name}" updated`);
+
+      router.push(`/workflows/${data.id}`);
+
+      // ✅ proper tRPC invalidation
+      utils.workflows.getMany.invalidate(); 
+      utils.workflows.getOne.invalidate({id:data.id});
+      
+    },
+    onError: (error) => {
+      toast.error(`Failed to update Workflow: ${error.message}`);
     },
   });
 };

@@ -49,7 +49,15 @@ const Page = async () => {
 };
 
 export default Page;
-*/import { requireAuth } from "@/lib/auth-utils";
+*/import { Editor, EditorError, EditorLoading } from "@/features/editor/components/editor";
+import { EditorHeader } from "./editor-header";
+import { WorkflowsError, WorkflowsLoading } from "@/features/workflows/components/workflows";
+import { prefetchWorkflow } from "@/features/workflows/server/prefetch";
+import { requireAuth } from "@/lib/auth-utils";
+import { HydrateClient } from "@/trpc/server";
+import { Workflow } from "lucide-react";
+import { ErrorBoundary } from "react-error-boundary";
+import { Suspense } from "react";
 
 interface PageProps {
   params: Promise<{
@@ -62,17 +70,17 @@ const Page = async ({ params }: PageProps) => {
 
   // ✅ THIS IS THE FIX
   const { workflows: workflowId } = await params;
+prefetchWorkflow(workflowId);
+  return (<HydrateClient>
+    <ErrorBoundary fallback={<EditorError />}>
+    <Suspense fallback={<EditorLoading />}>
+    <EditorHeader workflowId={workflowId}/>
+   <main className="flex-1"><Editor workflowId={workflowId} /></main>
+    </Suspense>
 
-  return (
-    <div style={{ padding: "24px" }}>
-      <h1 style={{ fontSize: "20px", fontWeight: 600 }}>
-        Workflow Editor
-      </h1>
-
-      <p style={{ marginTop: "12px" }}>
-        Workflow ID: <strong>{workflowId}</strong>
-      </p>
-    </div>
+    </ErrorBoundary>
+  </HydrateClient>
+    
   );
 };
 
