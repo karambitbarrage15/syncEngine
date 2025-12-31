@@ -6,7 +6,7 @@ export function BaseNode({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "bg-card text-card-foreground relative rounded-md border",
+        "bg-card text-card-foreground relative rounded-md border inline-flex ",
         "hover:ring-1",
         // React Flow displays node elements inside of a `NodeWrapper` component,
         // which compiles down to a div with the class `react-flow__node`.
@@ -22,6 +22,8 @@ export function BaseNode({ className, ...props }: ComponentProps<"div">) {
     />
   );
 }
+
+
 
 /**
  * A container for a consistent header layout intended to be used inside the
