@@ -22,6 +22,8 @@ import { ErrorView, LoadingView } from "@/components/entity-views";
 import { useSuspenseWorkflow } from "@/features/workflows/hooks/use-workflows";
 import { nodeComponents } from "@/config/node-components";
 import { AddNodeButton } from "./add-node-button";
+import { useSetAtom } from "jotai";
+import { editorAtom } from "@/app/atoms";
 
 /* ------------------------------------------------------------------ */
 /* Loading / Error                                                     */
@@ -43,6 +45,7 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
   // Suspense-based workflow fetch
   const [workflow] = useSuspenseWorkflow(workflowId);
 
+  const setEditor=useSetAtom(editorAtom);
   // IMPORTANT: start empty (never initialize from async data)
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -103,8 +106,14 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
 onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeComponents}
+        onInit={setEditor}
         fitView
-        proOptions={{ hideAttribution: true }}
+        snapGrid={[10,10]}
+        snapToGrid
+        panOnScroll
+        panOnDrag={false}
+        selectionOnDrag
+       
       >
         <Background />
         <Controls />

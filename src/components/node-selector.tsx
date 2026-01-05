@@ -52,7 +52,9 @@ export function NodeSelector({
         const nodes=getNodes();
         const hasManualTrigger=nodes.some((node)=>node.type===NodeType.MANUAL_TRIGGER,
       );
-      if(hasManualTrigger){toast.error("Only one manual trigger is allowed per workflow")}
+      if(hasManualTrigger){toast.error("Only one manual trigger is allowed per workflow")
+        return;
+      }
     }
     setNodes((nodes)=>{
       const hasInitialTrigger=nodes.some((node)=>node.type===NodeType.INITIAL,);

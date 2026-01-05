@@ -51,28 +51,115 @@ export const workflowsRouter = createTRPCRouter({
         },
       });
     }),
+/* ------------------------------------------------------------------ */
+/* Update Workflow Name ONLY                                           */
+/* ------------------------------------------------------------------ */
+updateName: protectedProcedure
+  .input(
+    z.object({
+      id: z.string(),
+      name: z.string().min(1),
+    })
+  )
+  .mutation(async ({ ctx, input }) => {
+    return prisma.workflow.update({
+      where: {
+        id: input.id,
+        userId: ctx.auth.user.id,
+      },
+      data: {
+        name: input.name,
+      },
+    });
+  }),
 
   /* ------------------------------------------------------------------ */
   /* Update Workflow Name                                                */
-  /* ------------------------------------------------------------------ */
-  updateName: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        name: z.string().min(1),
-      })
-    )
-    .mutation(({ ctx, input }) => {
-      return prisma.workflow.update({
+  /* ------------------------------------------------------------------ */update: protectedProcedure
+  .input(
+    z.object({
+      id: z.string(),
+
+     nodes: z.array(
+  z.object({
+    id: z.string(),
+    type: z.nativeEnum(NodeType).nullish(),
+    position: z.object({
+      x: z.number(),
+      y: z.number(),
+    }),
+    data: z.record(z.string(), z.any()).optional(),
+  })
+),
+
+
+      edges: z.array(
+        z.object({
+          source: z.string(),
+          target: z.string(),
+          sourceHandle: z.string().nullish(),
+          targetHandle: z.string().nullish(),
+        })
+      ),
+    })
+  )
+  .mutation(async ({ ctx, input }) => {
+    const { id, nodes, edges } = input;
+
+    // Ensure workflow exists and belongs to user
+    await prisma.workflow.findUniqueOrThrow({
+      where: {
+        id,
+        userId: ctx.auth.user.id,
+      },
+    });
+
+    return prisma.$transaction(async (tx) => {
+      // 1️⃣ Delete old nodes
+      await tx.node.deleteMany({
         where: {
-          id: input.id,
-          userId: ctx.auth.user.id,
-        },
-        data: {
-          name: input.name,
+          workflowId: id,
         },
       });
-    }),
+
+      // 2️⃣ Create new nodes
+      await tx.node.createMany({
+        data: nodes.map((node) => ({
+          id: node.id,
+          workflowId: id,
+          name: node.type ?? "unknown",
+          type: (node.type ?? NodeType.INITIAL) as NodeType,
+          position: node.position,
+          data: node.data ?? {},
+        })),
+      });
+
+      // 3️⃣ Delete old connections
+      await tx.connection.deleteMany({
+        where: {
+          workflowId: id,
+        },
+      });
+
+      // 4️⃣ Create new connections
+      await tx.connection.createMany({
+        data: edges.map((edge) => ({
+          workflowId: id,
+          fromNodeId: edge.source,
+          toNodeId: edge.target,
+          fromOutput: edge.sourceHandle ?? "main",
+          toInput: edge.targetHandle ?? "main",
+        })),
+      });
+
+      // 5️⃣ Touch workflow updatedAt
+      return tx.workflow.update({
+        where: { id },
+        data: { updatedAt: new Date() },
+      });
+    });
+  }),
+
 
   /* ------------------------------------------------------------------ */
   /* Get One Workflow (Editor)                                           */
@@ -171,3 +258,4 @@ export const workflowsRouter = createTRPCRouter({
       };
     }),
 });
+  

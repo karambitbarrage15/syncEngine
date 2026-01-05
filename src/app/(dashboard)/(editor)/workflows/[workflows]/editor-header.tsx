@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SaveIcon } from "lucide-react";
+import type { Node as RFNode } from "@xyflow/react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,15 +18,61 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 import {
   useSuspenseWorkflows,
+  useUpdateWorkflow,
   useUpdateWorkflowName,
 } from "@/features/workflows/hooks/use-workflows";
+
+import { useAtomValue } from "jotai";
+import { editorAtom } from "@/app/atoms";
+
+/* =========================================================
+   Types (DB-safe)
+   ========================================================= */
+
+type WorkflowNodeType =
+  | "INITIAL"
+  | "MANUAL_TRIGGER"
+  | "HTTP_REQUEST";
+
+type DBNode = {
+  id: string;
+  position: { x: number; y: number };
+  type?: WorkflowNodeType | null;
+  data?: Record<string, any>;
+};
+
+/* =========================================================
+   Serializer (FIXES Node[] error)
+   ========================================================= */
+
+const serializeNodes = (nodes: RFNode[]): DBNode[] => {
+  return nodes.map((node) => ({
+    id: node.id,
+    position: node.position,
+    type: node.type as WorkflowNodeType | null,
+    data: node.data,
+  }));
+};
 
 /* ========================= Save Button ========================= */
 
 export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
+  const editor = useAtomValue(editorAtom);
+  const saveWorkflow = useUpdateWorkflow();
+
+  const handleSave = () => {
+    if (!editor) return;
+
+    saveWorkflow.mutate({
+      id: workflowId,
+      nodes: serializeNodes(editor.getNodes()), // ✅ FIXED
+      edges: editor.getEdges(),
+    });
+  };
+
   return (
     <div className="ml-auto">
-      <Button size="sm" disabled>
+      <Button size="sm" onClick={handleSave} disabled={saveWorkflow.isPending}>
         <SaveIcon className="size-4 mr-1" />
         Save
       </Button>
@@ -36,27 +83,19 @@ export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
 /* ========================= Name Input ========================= */
 
 export const EditorNameInput = ({ workflowId }: { workflowId: string }) => {
-  // ✅ CORRECT: tuple destructuring
   const [data] = useSuspenseWorkflows();
   const updateWorkflow = useUpdateWorkflowName();
 
-  // ✅ Type is inferred correctly now
-  const workflow = data.items.find(
-    (item) => item.id === workflowId
-  );
+  const workflow = data.items.find((item) => item.id === workflowId);
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(workflow?.name ?? "");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /* keep local name in sync */
   useEffect(() => {
-    if (workflow?.name) {
-      setName(workflow.name);
-    }
+    if (workflow?.name) setName(workflow.name);
   }, [workflow?.name]);
 
-  /* autofocus input */
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
@@ -71,7 +110,7 @@ export const EditorNameInput = ({ workflowId }: { workflowId: string }) => {
       setIsEditing(false);
       return;
     }
-setIsEditing(false);
+
     try {
       await updateWorkflow.mutateAsync({
         id: workflow.id,
@@ -79,7 +118,7 @@ setIsEditing(false);
       });
     } catch {
       setName(workflow.name);
-    } finally{
+    } finally {
       setIsEditing(false);
     }
   };
@@ -95,22 +134,21 @@ setIsEditing(false);
   if (isEditing) {
     return (
       <Input
-      disabled={updateWorkflow.isPending}
+        disabled={updateWorkflow.isPending}
         ref={inputRef}
         value={name}
         onChange={(e) => setName(e.target.value)}
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
-
         className="h-7 w-auto min-w-[100px] px-2"
       />
     );
   }
 
   return (
-    <BreadcrumbItem onClick={()=>setIsEditing(true)}
+    <BreadcrumbItem
+      onClick={() => setIsEditing(true)}
       className="font-medium text-foreground cursor-pointer"
-      
     >
       {workflow?.name ?? "Workflow"}
     </BreadcrumbItem>

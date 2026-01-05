@@ -1,13 +1,14 @@
 "use client";
 
 import { memo, type ReactNode } from "react";
-import { type NodeProps, Position } from "@xyflow/react";
+import { type NodeProps, Position, useReactFlow } from "@xyflow/react";
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
 
 import { BaseNode, BaseNodeContent } from "../../../components/react-flow/base-node";
 import { BaseHandle } from "../../../components/react-flow/base-handle";
 import { WorkflowNode } from "../../../components/workflow-node";
+import { NodeStatusIndicator } from "@/components/react-flow/node-status-indicator";
 
 interface BaseTriggerProps extends NodeProps {
   icon: LucideIcon | string;
@@ -27,7 +28,18 @@ export const BaseTriggerNode = memo(({
   onSettings,
   onDoubleClick,
 }: BaseTriggerProps) => {
-  const handleDelete = () => {};
+  const {setNodes,setEdges}=useReactFlow();
+  const handleDelete = () => {
+    setNodes((currentNodes)=>{
+      const updatedNodes=currentNodes.filter((node)=>node.id!==id);
+      return updatedNodes;
+    });
+     setEdges((currentNodes)=>{
+      const updatedNodes=currentNodes.filter((edge)=>edge.source!==id&&edge.target!==id);
+      return updatedNodes;
+    });
+   
+  };
 
   return (
     <WorkflowNode
@@ -36,6 +48,12 @@ export const BaseTriggerNode = memo(({
       onDelete={handleDelete}
       onSettings={onSettings}
     >
+      <NodeStatusIndicator
+      status="success"
+      variant="border"
+      className="rounded-l-2xl"
+
+      >
       <BaseNode onDoubleClick={onDoubleClick} className="rounded-l-2xl relative group">
         <BaseNodeContent>
           {typeof Icon === "string" ? (
@@ -52,7 +70,7 @@ export const BaseTriggerNode = memo(({
             position={Position.Right}
           />
         </BaseNodeContent>
-      </BaseNode>
+      </BaseNode></NodeStatusIndicator>
     </WorkflowNode>
   );
 });

@@ -57,11 +57,13 @@ export const WorkflowNode = ({
   ><p className="font-medium">
     {name}
   </p>
-  <p>
-    {description&&(
-      <p className="text-muted-foreground truncate text-sm">{description}</p>
-    )}
-  </p>
+<div>
+  {description && (
+    <p className="text-muted-foreground truncate text-sm">
+      {description}
+    </p>
+  )}
+</div>
 
   </NodeToolbar>
 )}
