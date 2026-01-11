@@ -8,6 +8,7 @@ import { WorkflowNode } from "@/components/workflow-node";
 import { BaseNode,BaseNodeContent } from "@/components/react-flow/base-node";
 import { HttpRequestsFormValues, HttpRequestDialog } from "./dialog";
 type HttpRequestNodeData={
+  variableName?:string;
   endpoint?:string;
   method?:"GET"|"POST"|"PUT"|"PATCH"|"DELETE";
     body?:string;

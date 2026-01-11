@@ -32,7 +32,7 @@ export const executeWorkflow = inngest.createFunction(
       ------------------------------ */
       const nodes: Node[] = workflow.nodes.map((node) => ({
         id: node.id,
-        type: node.type,
+        type: node.type as NodeType,
         position: (node.position as { x: number; y: number }) ?? {
           x: 0,
           y: 0,
