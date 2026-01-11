@@ -6,12 +6,13 @@ import { BaseExecutionNode } from "@/features/executions/components/base-executi
 import { BaseHandle } from "@/components/react-flow/base-handle"; 
 import { WorkflowNode } from "@/components/workflow-node";
 import { BaseNode,BaseNodeContent } from "@/components/react-flow/base-node";
-import { FormType, HttpRequestDialog } from "./dialog";
+import { HttpRequestsFormValues, HttpRequestDialog } from "./dialog";
 type HttpRequestNodeData={
   endpoint?:string;
   method?:"GET"|"POST"|"PUT"|"PATCH"|"DELETE";
     body?:string;
-    [key:string]:unknown;
+   // [key:string]:unknown;
+
 };
 type HttpRequestNodeType=Node<HttpRequestNodeData>;
 
@@ -22,16 +23,14 @@ export const HttpRequestNode=memo((props:NodeProps<HttpRequestNodeType>)=>{
     const nodeStatus="initial";
 
     const handleOpenSettings=()=>setDialogOpen(true);
-    const handleSubmit=(values:FormType)=>{
+    const handleSubmit=(values:HttpRequestsFormValues)=>{
       setNodes((nodes)=>nodes.map((node)=>{
         if(node.id==props.id){
           return {
             ...node,
             data:{
               ...node.data,
-              endpoint:values.endpoint,
-              method:values.method,
-              body:values.body,
+              ...values,
             }
           }
         }
@@ -51,9 +50,7 @@ export const HttpRequestNode=memo((props:NodeProps<HttpRequestNodeType>)=>{
     open={dialogOpen}
     onOpenChange={setDialogOpen}
     onSubmit={handleSubmit}
-    defaultEndpoint={nodeData.endpoint}
-    defaultMethod={nodeData.method}
-    defaultBody={nodeData.body}
+    defaultValues={nodeData}
     />
     <BaseExecutionNode 
     {...props}
