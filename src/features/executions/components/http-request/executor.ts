@@ -1,11 +1,16 @@
 import type { NodeExecutor } from "@/features/executions/components/types";
 import { NonRetriableError } from "inngest";
 import ky, { type Options as KyOptions } from "ky";
-
+import Handlebars from "handlebars";
+Handlebars.registerHelper("json",(context)=>{
+  const stringified=JSON.stringify(context,null,2);
+  const safeString=new Handlebars.SafeString(stringified);
+  return safeString;
+});
 type HttpRequestData = {
-  variableName?:string;
-  endpoint?: string;
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  variableName:string;
+  endpoint: string;
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: string;
 };
 
@@ -25,10 +30,15 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     throw new NonRetriableError(
       "No Variable name configured"
     );
+  }if (!data.method)  {
+    throw new NonRetriableError(
+      " No method configured"
+    );
   }
   const result = await step.run("http-request", async () => {
-    const endpoint = data.endpoint!;
-    const method = data.method ?? "GET";
+    const endpoint = Handlebars.compile(data.endpoint)(context);
+    console.log("ENDPOINT",{endpoint})
+    const method = data.method;
 
     const options: KyOptions = {
       method,
@@ -36,8 +46,10 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
 
     // Only attach body for methods that support it
     if (["POST", "PUT", "PATCH"].includes(method)) {
+      const resolved=Handlebars.compile(data.body||"{}")(context);
+      JSON.parse(resolved);
       if (data.body) {
-        options.body = data.body;
+        options.body = resolved;
         options.headers={
           "Content-Type":"application/json",
         }
@@ -59,9 +71,10 @@ const responsePayload={
     data:responseData,
   },
 };
+const compiledVariableName=Handlebars.compile(data.variableName)(context);
    if(data.variableName){ return {
       ...context,
-    [data.variableName]:responsePayload,
+    [compiledVariableName]:responsePayload,
     };}
  
 //FALLVBACK TO DIRECT HTTTPRESPONSE FOR BACKWARD COMPATIBILITY
