@@ -2,6 +2,7 @@ import type { NodeExecutor } from "@/features/executions/components/types";
 import { NonRetriableError } from "inngest";
 import ky, { type Options as KyOptions } from "ky";
 import Handlebars from "handlebars";
+import { httpRequestChannel } from "@/inngest/channels/http-request";
 Handlebars.registerHelper("json",(context)=>{
   const stringified=JSON.stringify(context,null,2);
   const safeString=new Handlebars.SafeString(stringified);
@@ -19,22 +20,38 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   nodeId,
   context,
   step,
+  publish,
 }) => {
   // TODO: publish loading state for manual trigger
+  await publish(httpRequestChannel().status({
+    nodeId,
+    status:"loading",
+  }))
   if (!data.endpoint) {
+    await publish(httpRequestChannel().status({
+    nodeId,
+    status:"error",
+  }))
     throw new NonRetriableError(
       "Http Request node: No endpoint configured"
     );
   }
- if (!data.variableName) {
+ if (!data.variableName) {await publish(httpRequestChannel().status({
+    nodeId,
+    status:"error",
+  }))
     throw new NonRetriableError(
       "No Variable name configured"
     );
-  }if (!data.method)  {
+  }if (!data.method)  {await publish(httpRequestChannel().status({
+    nodeId,
+    status:"error",
+  }))
     throw new NonRetriableError(
       " No method configured"
     );
   }
+  try{
   const result = await step.run("http-request", async () => {
     const endpoint = Handlebars.compile(data.endpoint)(context);
     console.log("ENDPOINT",{endpoint})
@@ -83,6 +100,18 @@ return {
   ...responsePayload
 }
  });
+ await publish(httpRequestChannel().status({
+    nodeId,
+    status:"success",
+  }))
   // TODO: publish success state
-  return result;
+  return result;}
+  catch(error){
+    
+await publish(httpRequestChannel().status({
+    nodeId,
+    status:"error",
+  }))
+  throw error;
+} 
 };

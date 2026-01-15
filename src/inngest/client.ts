@@ -1,2 +1,6 @@
 import {Inngest} from "inngest";
-export const inngest=new Inngest({id:"SyncEngine"});
+import {realtimeMiddleware} from "@inngest/realtime/middleware";
+export const inngest=new Inngest({
+  id:"SyncEngine",
+  middleware:[realtimeMiddleware()],
+  });

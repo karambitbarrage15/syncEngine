@@ -5,19 +5,30 @@ import { topologicalSort } from "./utils";
 import type { Node, Connection } from "@xyflow/react";
 import { NodeType } from "@/generated/prisma";
 import { getExecutor } from "@/features/executions/components/lib/executor-registry";
+import { httpRequestChannel } from "./channels/http-request";
+import { manualTriggerChannel } from "./channels/manual-trigger";
 
 export const executeWorkflow = inngest.createFunction(
   {
     id: "execute-workflow",
+    retries:0,//Todo:remove for production
   },
-  { event: "workflows/execute.workflow" },
-  async ({ event, step }) => {
+  {
+    event: "workflows/execute.workflow",
+    channels: [httpRequestChannel(),
+      manualTriggerChannel(),
+    ],
+  },
+  async ({ event, step, publish }) => {
     const workflowId = event.data.workflowId;
 
     if (!workflowId) {
       throw new NonRetriableError("Workflow id is missing");
     }
 
+    /* -----------------------------
+       PREPARE WORKFLOW (DAG)
+    ------------------------------ */
     const sortedNodes = await step.run("prepare-workflow", async () => {
       const workflow = await prisma.workflow.findUniqueOrThrow({
         where: { id: workflowId },
@@ -27,22 +38,14 @@ export const executeWorkflow = inngest.createFunction(
         },
       });
 
-      /* -----------------------------
-         DB → React Flow NODE mapping
-      ------------------------------ */
       const nodes: Node[] = workflow.nodes.map((node) => ({
         id: node.id,
         type: node.type as NodeType,
-        position: (node.position as { x: number; y: number }) ?? {
-          x: 0,
-          y: 0,
-        },
+        position:
+          (node.position as { x: number; y: number }) ?? { x: 0, y: 0 },
         data: (node.data as Record<string, unknown>) ?? {},
       }));
 
-      /* -----------------------------
-         DB → React Flow CONNECTION mapping
-      ------------------------------ */
       const connections: Connection[] = workflow.connections.map((c) => ({
         source: c.fromNodeId,
         target: c.toNodeId,
@@ -52,14 +55,71 @@ export const executeWorkflow = inngest.createFunction(
 
       return topologicalSort(nodes, connections);
     });
-let context=event.data.initialData||{};
-for(const node of sortedNodes)
-{
-  const executor =getExecutor(node.type as NodeType);
-}
-    return { workflowId,
-      result:context
-     };
+
+    /* -----------------------------
+       EXECUTE WORKFLOW
+    ------------------------------ */
+    let context: Record<string, unknown> =
+      event.data.initialData ?? {};
+
+    for (const node of sortedNodes) {
+      const executor = getExecutor(node.type as NodeType);
+
+      // 🔔 NODE STARTED
+      await publish({
+        channel: "http-request",
+        topic: "workflow/node.started",
+        data: {
+          workflowId,
+          nodeId: node.id,
+          nodeType: node.type,
+        },
+      });
+
+      try {
+        context = await executor({
+          data: node.data as Record<string, unknown>,
+          nodeId: node.id,
+          context,
+          step,
+          publish,
+        });
+
+        // 🔔 NODE COMPLETED
+        await publish({
+          channel: "http-request",
+          topic: "workflow/node.completed",
+          data: {
+            workflowId,
+            nodeId: node.id,
+            context,
+          },
+        });
+      } catch (error) {
+        // 🔔 NODE FAILED
+        await publish({
+          channel: "http-request",
+          topic: "workflow/node.failed",
+          data: {
+            workflowId,
+            nodeId: node.id,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Unknown error",
+          },
+        });
+
+        throw error;
+      }
+    }
+
+    /* -----------------------------
+       FINAL RESULT (THIS WAS MISSING)
+    ------------------------------ */
+    return {
+      workflowId,
+      result: context,
+    };
   }
 );
-  

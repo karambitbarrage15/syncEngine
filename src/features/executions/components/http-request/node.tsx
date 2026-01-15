@@ -7,6 +7,9 @@ import { BaseHandle } from "@/components/react-flow/base-handle";
 import { WorkflowNode } from "@/components/workflow-node";
 import { BaseNode,BaseNodeContent } from "@/components/react-flow/base-node";
 import { HttpRequestsFormValues, HttpRequestDialog } from "./dialog";
+import { UseNodeStatus } from "../../hooks/use-node-stauts";
+import { HTTP_REQUEST_CHANNEL_NAME, httpRequestChannel } from "@/inngest/channels/http-request";
+import { fetchHttpRequestRealtimeToken } from "./actions";
 type HttpRequestNodeData={
   variableName?:string;
   endpoint?:string;
@@ -21,7 +24,12 @@ type HttpRequestNodeType=Node<HttpRequestNodeData>;
 export const HttpRequestNode=memo((props:NodeProps<HttpRequestNodeType>)=>{
   const [dialogOpen,setDialogOpen]=useState(false);
   const {setNodes}=useReactFlow();
-    const nodeStatus="initial";
+    const nodeStatus=UseNodeStatus({
+      nodeId:props.id,
+      channel:HTTP_REQUEST_CHANNEL_NAME,
+      topic:"status",
+      refreshToken:fetchHttpRequestRealtimeToken,
+    });
 
     const handleOpenSettings=()=>setDialogOpen(true);
     const handleSubmit=(values:HttpRequestsFormValues)=>{
