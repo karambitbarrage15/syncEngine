@@ -25,7 +25,11 @@ const triggerNodes :NodeTypeOption[]=[
  { type:NodeType.MANUAL_TRIGGER,
   label:"Trigger manually",
   description:"Runs flow on clicking a button.Good for getting started quickly",
-  icon:MousePointerIcon,}
+  icon:MousePointerIcon,},
+   { type:NodeType.GOOGLE_FORM_TRIGGER,
+  label:"Trigger manually",
+  description:"Runs flow when a Google form is submitted ",
+  icon:"/logos/googleform.svg",}
 
 ];const executionNodes :NodeTypeOption[]=[
  { type:NodeType.HTTP_REQUEST,

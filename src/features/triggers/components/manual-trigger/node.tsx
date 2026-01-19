@@ -23,7 +23,7 @@ return (
 {...props}
 icon={MousePointerIcon}
 name="When clicking 'Execute workflow'"
-
+status={nodeStatus}
 onSettings={handleOpenSettings}
 onDoubleClick={handleOpenSettings}
 />

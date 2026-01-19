@@ -1,5 +1,6 @@
 import type { Node, Connection } from "@xyflow/react";
 import toposort from "toposort";
+import { inngest } from "./client";
 
 /**
  * Converts React Flow connections into a topologically sorted list of nodes.
@@ -59,4 +60,14 @@ export function topologicalSort(
   return sortedNodeIds
     .map((id) => nodeMap.get(id))
     .filter((n): n is Node => Boolean(n));
+}
+
+export const sendWorkflowExecution=async(data:{
+  workflowId:string,
+  [key:string]:any;
+
+})=>{
+  return inngest.send({
+    name:"workflows/execute.workflow",data,
+  })
 }

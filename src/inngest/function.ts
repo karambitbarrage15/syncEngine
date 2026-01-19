@@ -7,6 +7,7 @@ import { NodeType } from "@/generated/prisma";
 import { getExecutor } from "@/features/executions/components/lib/executor-registry";
 import { httpRequestChannel } from "./channels/http-request";
 import { manualTriggerChannel } from "./channels/manual-trigger";
+import { googleFormTriggerChannel } from "./channels/goggle-form-trigger copy";
 
 export const executeWorkflow = inngest.createFunction(
   {
@@ -17,6 +18,7 @@ export const executeWorkflow = inngest.createFunction(
     event: "workflows/execute.workflow",
     channels: [httpRequestChannel(),
       manualTriggerChannel(),
+      googleFormTriggerChannel(),
     ],
   },
   async ({ event, step, publish }) => {
@@ -30,14 +32,18 @@ export const executeWorkflow = inngest.createFunction(
        PREPARE WORKFLOW (DAG)
     ------------------------------ */
     const sortedNodes = await step.run("prepare-workflow", async () => {
-      const workflow = await prisma.workflow.findUniqueOrThrow({
-        where: { id: workflowId },
+      const workflow = await prisma.workflow.findFirst({
+        where: { id: workflowId,
+          status:"PUBLISHED",
+         },
         include: {
           nodes: true,
           connections: true,
         },
       });
-
+if(!workflow){
+  throw new NonRetriableError(`Workflow ${workflowId} not found or not published`);
+}
       const nodes: Node[] = workflow.nodes.map((node) => ({
         id: node.id,
         type: node.type as NodeType,
@@ -93,7 +99,7 @@ export const executeWorkflow = inngest.createFunction(
             workflowId,
             nodeId: node.id,
             context,
-          },
+          },//jointly-incretionary-arlena.ngrok-free.dev
         });
       } catch (error) {
         // 🔔 NODE FAILED

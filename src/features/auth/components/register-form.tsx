@@ -131,7 +131,7 @@ name="confirmPassword" render={({field})=>(
 </div>
 <div className="text-center text-sm">
 Already have a account?{" "}
-<Link href="/login" className="underline underline-offset-4">Login in</Link>
+<Link href="/login" className="underline underline-offset-4">Log in</Link>
 </div>
 </div>
 </form>

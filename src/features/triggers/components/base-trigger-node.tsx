@@ -8,7 +8,7 @@ import Image from "next/image";
 import { BaseNode, BaseNodeContent } from "../../../components/react-flow/base-node";
 import { BaseHandle } from "../../../components/react-flow/base-handle";
 import { WorkflowNode } from "../../../components/workflow-node";
-import { NodeStatusIndicator } from "@/components/react-flow/node-status-indicator";
+import { NodeStatus, NodeStatusIndicator } from "@/components/react-flow/node-status-indicator";
 
 interface BaseTriggerProps extends NodeProps {
   icon: LucideIcon | string;
@@ -17,6 +17,7 @@ interface BaseTriggerProps extends NodeProps {
   children?: ReactNode;
   onSettings?: () => void;
   onDoubleClick?: () => void;
+  status?:NodeStatus;
 }
 
 export const BaseTriggerNode = memo(({
@@ -27,6 +28,7 @@ export const BaseTriggerNode = memo(({
   children,
   onSettings,
   onDoubleClick,
+  status,
 }: BaseTriggerProps) => {
   const {setNodes,setEdges}=useReactFlow();
   const handleDelete = () => {
@@ -49,7 +51,7 @@ export const BaseTriggerNode = memo(({
       onSettings={onSettings}
     >
       <NodeStatusIndicator
-      status="success"
+      status={status}
       variant="border"
       className="rounded-l-2xl"
 
