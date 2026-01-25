@@ -13,35 +13,32 @@ import { CopyIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { generateGoogleFormScript } from "./utils";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const GoogleFormTriggerDialog = ({
+export const StripeTriggerDialog = ({
   open,
   onOpenChange,
 }: Props) => {
-  const params = useParams<{ workflowId?: string }>();
-  const workflowId = params.workflowId;
+  // ✅ MATCH ROUTE NAME
+  const params = useParams<{ workflows?: string }>();
+  const workflowId = params.workflows;
 
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-  /**
-   * 🚫 If workflowId is missing, show a safe message
-   * Never generate webhook or script in this case
-   */
+  /* 🚫 Workflow not ready */
   if (!workflowId) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Google Form Trigger</DialogTitle>
+            <DialogTitle>Stripe Trigger</DialogTitle>
             <DialogDescription>
-              Save and open a workflow before configuring the Google Form trigger.
+              Save and open a workflow before configuring the Stripe trigger.
             </DialogDescription>
           </DialogHeader>
 
@@ -60,10 +57,8 @@ export const GoogleFormTriggerDialog = ({
     );
   }
 
-  /**
-   * ✅ SAFE: workflowId exists
-   */
-  const webhookUrl = `${baseUrl}/api/webhooks/google-form?workflowId=${workflowId}`;
+  /* ✅ Webhook URL */
+  const webhookUrl = `${baseUrl}/api/webhooks/stripe?workflowId=${workflowId}`;
 
   const copyWebhookUrl = async () => {
     try {
@@ -74,23 +69,13 @@ export const GoogleFormTriggerDialog = ({
     }
   };
 
-  const copyScript = async () => {
-    try {
-      const script = generateGoogleFormScript(webhookUrl);
-      await navigator.clipboard.writeText(script);
-      toast.success("Google Apps Script copied");
-    } catch {
-      toast.error("Failed to copy script");
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Google Form Trigger Configuration</DialogTitle>
+          <DialogTitle>Stripe Trigger Configuration</DialogTitle>
           <DialogDescription>
-            Use this webhook URL in your Google Form Apps Script to trigger this workflow.
+            Configure this webhook URL in your Stripe Dashboard to trigger this workflow.
           </DialogDescription>
         </DialogHeader>
 
@@ -120,51 +105,54 @@ export const GoogleFormTriggerDialog = ({
           <div className="rounded-lg bg-muted p-4 space-y-2">
             <h4 className="font-medium text-sm">Setup Instructions</h4>
             <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
-              <li>Open your Google Form</li>
-              <li>Click the three dots → Script editor</li>
-              <li>Paste the script below</li>
-              <li>Save and add a trigger</li>
-              <li>Choose “From form” → “On form submit”</li>
+              <li>Open your Stripe Dashboard</li>
+              <li>Go to Developers → Webhooks</li>
+              <li>Click “Add endpoint”</li>
+              <li>Paste the webhook URL above</li>
+              <li>
+                Select events to listen for (e.g.
+                <code className="ml-1 bg-background px-1 py-0.5 rounded">
+                  payment_intent.succeeded
+                </code>
+                )
+              </li>
+              <li>Save and copy the signing secret</li>
             </ol>
           </div>
 
-          {/* Google Apps Script */}
-          <div className="rounded-lg bg-muted p-4 space-y-3">
-            <h4 className="font-medium text-sm">Google Apps Script</h4>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={copyScript}
-            >
-              <CopyIcon className="size-4 mr-2" />
-              Copy Google Apps Script
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              This script includes your webhook URL and handles form submissions.
-            </p>
-          </div>
-
-          {/* ✅ Available Variables (THIS WAS MISSING BEFORE) */}
+          {/* Available Variables */}
           <div className="rounded-lg bg-muted p-4 space-y-2">
             <h4 className="font-medium text-sm">Available Variables</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>
                 <code className="bg-background px-1 py-0.5 rounded">
-                  {"{{googleForm.respondentEmail}}"}
-                </code>
-                {" "}– Respondent&apos;s email
+                  {"{{stripe.amount}}"}
+                </code>{" "}
+                – Payment amount
               </li>
               <li>
                 <code className="bg-background px-1 py-0.5 rounded">
-                  {"{{googleForm.responses['Question Name']}}"}
-                </code>
-                {" "}– Specific answer
+                  {"{{stripe.currency}}"}
+                </code>{" "}
+                – Currency code
               </li>
               <li>
                 <code className="bg-background px-1 py-0.5 rounded">
-                  {"{{json.googleForm.responses}}"}
-                </code>
-                {" "}– All responses as JSON
+                  {"{{stripe.customerId}}"}
+                </code>{" "}
+                – Customer ID
+              </li>
+              <li>
+                <code className="bg-background px-1 py-0.5 rounded">
+                  {"{{stripe.eventType}}"}
+                </code>{" "}
+                – Event type
+              </li>
+              <li>
+                <code className="bg-background px-1 py-0.5 rounded">
+                  {"{{json.stripe}}"}
+                </code>{" "}
+                – Full Stripe event JSON
               </li>
             </ul>
           </div>
@@ -173,4 +161,3 @@ export const GoogleFormTriggerDialog = ({
     </Dialog>
   );
 };
- 

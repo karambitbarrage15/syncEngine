@@ -1,5 +1,5 @@
 import type { NodeExecutor } from "@/features/executions/components/types";
-import { googleFormTriggerChannel } from "@/inngest/channels/goggle-form-trigger copy";
+import { googleFormTriggerChannel } from "@/inngest/channels/goggle-form-trigger";
 
 type GoogleFormTriggerData=Record<string,unknown>;
 export const googleFormTriggerExecutor:NodeExecutor<GoogleFormTriggerData>=async({

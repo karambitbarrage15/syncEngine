@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { WorkflowStatus } from "@/generated/prisma";
 
+
 export async function POST(request: NextRequest) {
   try {
     const url = new URL(request.url);
@@ -39,30 +40,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // ✅ OLD STYLE: explicit formData object
-    const formData = {
-      formId: body.formId,
-      formTitle: body.formTitle,
-      responseId: body.responseId,
-      timestamp: body.timestamp,
-      respondentEmail: body.respondentEmail,
-      responses: body.responses,
-      raw: body,
+    const stripeData = {
+      //event meatdata
+      eventId:body.id,
+      eventType:body.type,
+      timestamp:body.created,
+      livemode:body.livemode,
+      raw:body.data?.object,
     };
 
     // ✅ Trigger workflow execution
     await sendWorkflowExecution({
       workflowId,
       initialData: {
-        googleForm: formData,
+        stripe:stripeData,
       },
     });
 
     // ✅ REQUIRED response
-    return NextResponse.json({ success: true },{status:200});
+    return NextResponse.json({ success: true },{
+      status:200
+    });
   } catch (error) {
-    console.error("Google form webhook error:", error);
+    console.error("Stripe webhook error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to process Google Form submission" },
+      { success: false, error: "Failed to process Stripe Event submission" },
       { status: 500 }
     );
   }
