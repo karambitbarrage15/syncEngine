@@ -38,7 +38,17 @@ const triggerNodes :NodeTypeOption[]=[
  { type:NodeType.HTTP_REQUEST,
   label:"Http request",
   description:"Makes a http request",
-  icon:GlobeIcon,}
+  icon:GlobeIcon,},
+   { type:NodeType.GEMINI,
+  label:"Gemini",
+  description:"Use Google Gemini to generate text",
+  icon:"/logos/gemini.svg",},  { type:NodeType.OPENAI,
+  label:"Open Ai",
+  description:"Use Open AI to generate text",
+  icon:"/logos/openai.svg",},  { type:NodeType.ANTHROPIC,
+  label:"Anthropic",
+  description:"Use Anthropic to generate text",
+  icon:"/logos/anthropic.svg",}
 
 
 ];

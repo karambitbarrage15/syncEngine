@@ -1,0 +1,98 @@
+import type { NodeExecutor } from "@/features/executions/components/types";
+import { NonRetriableError } from "inngest";
+import { createOpenAI } from "@ai-sdk/openai";
+import Handlebars from "handlebars";
+import { generateText } from "ai";
+import { openaiChannel } from "@/inngest/channels/openai";
+Handlebars.registerHelper("json", (context) => {
+  const stringified = JSON.stringify(context, null, 2);
+  return new Handlebars.SafeString(stringified);
+});
+
+type OpenAIData = {
+  variableName?: string;
+  systemPrompts?: string;
+  userPrompts?: string;
+};
+
+export const openAIExecutor: NodeExecutor<OpenAIData> = async ({
+  data,
+  nodeId,
+  context,
+  step,
+  publish,
+}) => {
+  await publish(
+    openaiChannel().status({
+      nodeId,
+      status: "loading",
+    })
+  );
+
+  if (!data.variableName) {
+    await publish(openaiChannel().status({ nodeId, status: "error" }));
+    throw new NonRetriableError("OpenAI node: Variable name is missing");
+  }
+
+  if (!data.userPrompts) {
+    await publish(openaiChannel().status({ nodeId, status: "error" }));
+    throw new NonRetriableError("OpenAI node: User prompt is missing");
+  }
+
+  const systemPrompts = data.systemPrompts
+    ? Handlebars.compile(data.systemPrompts)(context)
+    : "You are a helpful assistant.";
+
+  const userPrompts = Handlebars.compile(data.userPrompts)(context);
+
+  const apiKey = process.env.OPENAI_API_KEY!;
+  if (!apiKey) {
+    throw new NonRetriableError("OpenAI API key is missing");
+  }
+
+  const openai = createOpenAI({ apiKey });
+
+  try {
+    const { steps } = await step.ai.wrap(
+      "openai-generate-text",
+      generateText,
+      {
+        model: openai("gpt-4o-mini"),
+        system: systemPrompts,
+        prompt: userPrompts,
+        experimental_telemetry: {
+          isEnabled: true,
+          recordInputs: true,
+          recordOutputs: true,
+        },
+      }
+    );
+
+    const text =
+      steps[0]?.content?.[0]?.type === "text"
+        ? steps[0].content[0].text
+        : "";
+
+    await publish(
+      openaiChannel().status({
+        nodeId,
+        status: "success",
+      })
+    );
+
+    return {
+      ...context,
+      [data.variableName]: {
+        text,
+      },
+    };
+  } catch (error) {
+    await publish(
+      openaiChannel().status({
+        nodeId,
+        status: "error",
+      })
+    );
+    throw error;
+  }
+};
