@@ -31,6 +31,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   workflows     Workflow[]
+  credentials   Credentials[]   // ✅ spelling fixed
   @@unique([email])
   @@map("user")
 }
@@ -79,24 +80,48 @@ model Verification {
 
   @@map("verification")
 }
-enum WorkflowStatus{
+
+enum WorkflowStatus {
   DRAFT
   PUBLISHED
 }
-model Workflow {
-  id        String   @id @default(cuid())
+
+model Credentials {
+  id        String         @id @default(cuid())
   name      String
-  status      WorkflowStatus @default(DRAFT)
+  type      CredentialType   // ✅ ADD THIS
+  value     String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  nodes     Node[]
-  connections  Connection[]
+
+  Node      Node[]
+}
+
+enum CredentialType {
+  OPENAI
+  ANTHROPIC
+  GEMINI
+}
+
+model Workflow {
+  id          String         @id @default(cuid())
+  name        String
+  status      WorkflowStatus @default(DRAFT)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nodes       Node[]
+  connections Connection[]
 
   @@map("workflow")
 }
-enum NodeType{
+
+enum NodeType {
   INITIAL
   MANUAL_TRIGGER
   HTTP_REQUEST
@@ -105,27 +130,27 @@ enum NodeType{
   ANTHROPIC
   GEMINI
   OPENAI
-  
 }
 
-model Node{
-   id         String   @id @default(cuid())
-  workflowId  String
-  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+model Node {
+  id               String     @id @default(cuid())
+  workflowId       String
+  workflow         Workflow   @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
+  name             String
+  type             NodeType
+  position         Json
+  data             Json       @default("{}")
+  credentialId     String?
+  credential       Credentials? @relation(fields: [credentialId], references: [id])
 
-  name String
-  type NodeType
-  position Json
-  data Json @default("{}")
-
- outputConnections Connection[] @relation("FromNode")
-inputConnection  Connection[] @relation("ToNode")
+  outputConnections Connection[] @relation("FromNode")
+  inputConnection   Connection[] @relation("ToNode")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-
 }
+
 model Connection {
   id          String   @id @default(cuid())
 
@@ -133,12 +158,12 @@ model Connection {
   workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   fromNodeId  String
-  fromNode    Node @relation("FromNode", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  fromNode    Node     @relation("FromNode", fields: [fromNodeId], references: [id], onDelete: Cascade)
 
   toNodeId    String
-  toNode      Node @relation("ToNode", fields: [toNodeId], references: [id], onDelete: Cascade)
+  toNode      Node     @relation("ToNode", fields: [toNodeId], references: [id], onDelete: Cascade)
 
-  fromOutput  String   @default("main")   // ✅ MUST be String
+  fromOutput  String   @default("main")
   toInput     String   @default("main")
 
   createdAt   DateTime @default(now())
