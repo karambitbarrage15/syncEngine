@@ -17,28 +17,30 @@ import {
 } from "@/components/entity-views";
 
 import {
-  useCreateWorkflow,
-  useRemoveWorkflow,
-  useSuspenseWorkflows,
-} from "../hooks/use-workflows";
+  
+  useRemoveCredential,
+  useSuspenseCredentials,
+} from "../hooks/use-credentials";
 
-import { useWorkflowsParams } from "../hooks/use-workflows-params";
+import { useCredentialsParams } from "../hooks/use-credentials-params";
 import { useEntitySearch } from "@/hooks/use-entitySearch";
 import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
-import { WorkflowIcon } from "lucide-react";
+
+import { CredentialType } from "@/generated/prisma";
+import Image from "next/image";
 
 /* ------------------------------------------------------------------ */
 /* 🔑 Client-safe inferred type (NO Prisma, NO new files)              */
 /* ------------------------------------------------------------------ */
 
-type WorkflowItem = ReturnType<
-  typeof useSuspenseWorkflows
+type CredentialItem = ReturnType<
+  typeof useSuspenseCredentials
 >[0]["items"][number];
 
 /* ----------------------------- Search ----------------------------- */
 
-export const WorkflowsSearch = () => {
-  const [params, setParams] = useWorkflowsParams();
+export const CredentialsSearch = () => {
+  const [params, setParams] = useCredentialsParams();
 
   const { searchValue, onSearchChange } = useEntitySearch({
     params,
@@ -49,62 +51,51 @@ export const WorkflowsSearch = () => {
     <EntitySearch
       value={searchValue ?? ""}
       onChange={(value) => onSearchChange(value ?? "")}
-      placeholder="Search workflows"
+      placeholder="Search credentials"
     />
   );
 };
 
 /* ----------------------------- List ----------------------------- */
 
-export const WorkflowsList = () => {
-  const [data] = useSuspenseWorkflows();
+export const CredentialsList = () => {
+  const [data] = useSuspenseCredentials();
 
   return (
     <EntityList
       items={data.items}
       getKey={(item) => item.id}
-      renderItem={(item) => <WorkflowItemRow data={item} />}
-      emptyView={<WorkflowsEmpty />}
+      renderItem={(item) => <CredentialItemRow data={item} />}
+      emptyView={<CredentialsEmpty />}
     />
   );
 };
 
 /* ----------------------------- Header ----------------------------- */
 
-export const WorkflowsHeader = ({ disabled }: { disabled?: boolean }) => {
-  const router = useRouter();
-  const createWorkflow = useCreateWorkflow();
-  const { handleError, modal } = useUpgradeModal();
-
-  const handleCreate = () => {
-    createWorkflow.mutate(undefined, {
-      onError: handleError,
-      onSuccess: (workflow) => {
-        router.push(`/workflows/${workflow.id}`);
-      },
-    });
-  };
+export const CredentialsHeader = ({ disabled }: { disabled?: boolean }) => {
+  
 
   return (
-    <>
-      {modal}
+  
       <EntityHeader
-        title="Workflows"
-        description="Create and manage your workflows"
-        onNew={handleCreate}
-        newButtonLabel="New Workflow"
+        title="Credentials"
+        description="Create and manage your credentials"
+        
+        newButtonHref="/credentials/new"
+        newButtonLabel="New Credentials"
         disabled={disabled}
-        isCreating={createWorkflow.isPending}
+      
       />
-    </>
+  
   );
 };
 
 /* ----------------------------- Pagination ----------------------------- */
 
-export const WorkflowsPagination = () => {
-  const [data, query] = useSuspenseWorkflows();
-  const [params, setParams] = useWorkflowsParams();
+export const CredentialsPagination = () => {
+  const [data, query] = useSuspenseCredentials();
+  const [params, setParams] = useCredentialsParams();
 
   return (
     <EntityPagination
@@ -120,16 +111,16 @@ export const WorkflowsPagination = () => {
 
 /* ----------------------------- Container ----------------------------- */
 
-export const WorkflowsContainer = ({
+export const CredentialsContainer = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
   return (
     <EntityContainer
-      header={<WorkflowsHeader />}
-      search={<WorkflowsSearch />}
-      pagination={<WorkflowsPagination />}
+      header={<CredentialsHeader />}
+      search={<CredentialsSearch />}
+      pagination={<CredentialsPagination />}
     >
       {children}
     </EntityContainer>
@@ -138,30 +129,28 @@ export const WorkflowsContainer = ({
 
 /* ----------------------------- States ----------------------------- */
 
-export const WorkflowsLoading = () => {
-  return <LoadingView message="Loading workflows..." />;
+export const CredentialsLoading = () => {
+  return <LoadingView message="Loading Credentials..." />;
 };
 
-export const WorkflowsError = () => {
-  return <ErrorView message="Error loading workflows" />;
+export const CredentialsError = () => {
+  return <ErrorView message="Error loading Credentials" />;
 };
 
-export const WorkflowsEmpty = () => {
-  const createWorkflow = useCreateWorkflow();
-  const { handleError, modal } = useUpgradeModal();
+export const CredentialsEmpty = () => {
+  const router=useRouter();
+  
 
   const handleCreate = () => {
-    createWorkflow.mutate(undefined, {
-      onError: handleError,
-    });
+    router.push(`/credentials/new`)
   };
 
   return (
     <>
-      {modal}
+      
       <EmptyView
         onNew={handleCreate}
-        message="No workflows found. Get started by creating your first workflow."
+        message="No Credentials found. Get started by creating your first credential."
       />
     </>
   );
@@ -169,16 +158,20 @@ export const WorkflowsEmpty = () => {
 
 /* ----------------------------- Item ----------------------------- */
 
-export const WorkflowItemRow = ({ data }: { data: WorkflowItem }) => {
-  const removeWorkflow = useRemoveWorkflow();
+const credentailLogos:Record<CredentialType,string>={
+  [CredentialType.OPENAI]:"/logos/openai.svg",[CredentialType.ANTHROPIC]:"/logos/anthropic.svg",
+  [CredentialType.GEMINI]:"/logos/gemini.svg",
+}
+export const CredentialItemRow = ({ data }: { data: CredentialItem }) => {
+  const removeCredential = useRemoveCredential();
 
   const handleRemove = () => {
-    removeWorkflow.mutate({ id: data.id });
+    removeCredential.mutate({ id: data.id });
   };
-
+const logo=credentailLogos[data.type]||"/logos/openai.svg";
   return (
     <EntityItems
-      href={`/workflows/${data.id}`}
+      href={`/credentials/${data.id}`}
       title={data.name}
       subtitle={
         <>
@@ -194,11 +187,11 @@ export const WorkflowItemRow = ({ data }: { data: WorkflowItem }) => {
       }
       image={
         <div className="size-8 flex items-center justify-center">
-          <WorkflowIcon className="size-5 text-muted-foreground" />
+          <Image src={logo} alt={data.type} width={20}height={20} />
         </div>
       }
       onRemove={handleRemove}
-      isRemoving={removeWorkflow.isPending}
+      isRemoving={removeCredential.isPending}
     />
   );
 };

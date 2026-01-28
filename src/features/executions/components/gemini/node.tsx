@@ -11,7 +11,7 @@ import { GeminiDialog } from "./dialog";
 
 type GeminiNodeData = {
   variableName?: string;
-
+credentialId?:string;
   systemPrompts?: string;
   userPrompts?: string;
 };

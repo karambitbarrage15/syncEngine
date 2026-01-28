@@ -8,9 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Image from "next/image";
+
 import z from "zod";
 import {
   Form,
+  FormControl,
   FormDescription,
   FormField,
   FormItem,
@@ -18,11 +21,20 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useCredentialsByType } from "@/features/credentials/hooks/use-credentials";
+import { CredentialType } from "@/generated/prisma";
 
 const formSchema = z.object({
   variableName: z
@@ -32,6 +44,7 @@ const formSchema = z.object({
       message:
         "Variable name must start with a letter or underscore and only contain letters, numbers, and underscores",
     }),
+  credentialId: z.string().min(1, "Credential is required"),
   systemPrompts: z.string().optional(),
   userPrompts: z.string().min(1, "User prompts are required"),
 });
@@ -51,10 +64,16 @@ export const AnthropicDialog = ({
   onSubmit,
   defaultValues = {},
 }: Props) => {
+  const {
+    data: credentials,
+    isLoading: isLoadingCredentials,
+  } = useCredentialsByType(CredentialType.ANTHROPIC);
+
   const form = useForm<AnthropicFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      variableName: defaultValues.variableName ?? "myAnthropic",
+      variableName: defaultValues.variableName ?? "",
+      credentialId: defaultValues.credentialId ?? "",
       systemPrompts: defaultValues.systemPrompts ?? "",
       userPrompts: defaultValues.userPrompts ?? "",
     },
@@ -63,7 +82,8 @@ export const AnthropicDialog = ({
   useEffect(() => {
     if (open) {
       form.reset({
-        variableName: defaultValues.variableName ?? "myAnthropic",
+        variableName: defaultValues.variableName ?? "",
+        credentialId: defaultValues.credentialId ?? "",
         systemPrompts: defaultValues.systemPrompts ?? "",
         userPrompts: defaultValues.userPrompts ?? "",
       });
@@ -83,7 +103,7 @@ export const AnthropicDialog = ({
         <DialogHeader>
           <DialogTitle>Anthropic Configuration</DialogTitle>
           <DialogDescription>
-            Configure Claude prompts for this node.
+            Configure Claude prompts and credentials for this node.
           </DialogDescription>
         </DialogHeader>
 
@@ -92,6 +112,7 @@ export const AnthropicDialog = ({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4 mt-4"
           >
+            {/* Variable Name */}
             <FormField
               control={form.control}
               name="variableName"
@@ -100,7 +121,7 @@ export const AnthropicDialog = ({
                   <FormLabel>Variable Name</FormLabel>
                   <Input placeholder="myAnthropic" {...field} />
                   <FormDescription>
-                    Output reference:{" "}
+                    Use this name to reference the result:{" "}
                     {`{{${watchVariableName}.text}}`}
                   </FormDescription>
                   <FormMessage />
@@ -108,6 +129,71 @@ export const AnthropicDialog = ({
               )}
             />
 
+            {/* Credential */}
+            <FormField
+              control={form.control}
+              name="credentialId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Anthropic Credential</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={
+                      isLoadingCredentials || !credentials?.length
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a credential" />
+                      </SelectTrigger>
+                    </FormControl>
+
+                    <SelectContent>
+                      {credentials?.map((credential) => (
+                        <SelectItem
+                          key={credential.id}
+                          value={credential.id}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src="/logos/anthropic.svg"
+                              alt="Anthropic"
+                              width={16}
+                              height={16}
+                            />
+                            {credential.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* System Prompts */}
+            <FormField
+              control={form.control}
+              name="systemPrompts"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>System Prompts</FormLabel>
+                  <Textarea
+                    placeholder="You are Claude, a helpful AI assistant."
+                    className="min-h-[100px] font-mono text-sm"
+                    {...field}
+                  />
+                  <FormDescription>
+                    Defines the behavior and rules for the AI (optional).
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* User Prompts */}
             <FormField
               control={form.control}
               name="userPrompts"
@@ -120,7 +206,7 @@ export const AnthropicDialog = ({
                     {...field}
                   />
                   <FormDescription>
-                    Supports {"{{variables}}"} and {"{{json variable}}"}.
+                    Use {"{{variables}}"} and {"{{json variable}}"}.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
