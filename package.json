@@ -67,6 +67,7 @@
     "embla-carousel-react": "^8.6.0",
     "handlebar": "^1.0.0",
     "handlebars": "^4.7.8",
+    "html-entities": "^2.6.0",
     "input-otp": "^1.4.2",
     "jotai": "^2.16.1",
     "ky": "^1.14.2",

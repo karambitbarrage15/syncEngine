@@ -21,6 +21,7 @@ credentialId?:string;
 export const geminiExecutor: NodeExecutor<GeminiData> = async ({
   data,
   nodeId,
+  userId,
   context,
   step,
   publish,
@@ -77,7 +78,8 @@ const userPrompts=Handlebars.compile(data.userPrompts)(context);
 const credential = await step.run("get-credential", () => {
   return prisma.credentials.findUnique({
     where: {
-      id: data.credentialId, // ✅ FIXED
+      id: data.credentialId, // ✅ FIXED this can be injected
+      userId,
     },
   });
 });
