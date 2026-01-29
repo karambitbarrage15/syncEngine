@@ -8,6 +8,8 @@ import { StripeTriggerNode } from "@/features/triggers/components/stripe-trigger
 import { GeminiNode } from "@/features/executions/components/gemini/node";
 import { OpenAiNode } from "@/features/executions/components/openAi/node";
 import { AnthropicNode } from "@/features/executions/components/anthropic/node";
+import { DiscordNode } from "@/features/executions/components/discord/node";
+import { SlackNode } from "@/features/executions/components/slack/node";
 export const nodeComponents={
   [NodeType.INITIAL]:InitialNode,[NodeType.HTTP_REQUEST]:HttpRequestNode,
  [NodeType.MANUAL_TRIGGER]:ManualTriggerNode,
@@ -15,7 +17,7 @@ export const nodeComponents={
  [NodeType.STRIPE_TRIGGER]: StripeTriggerNode,
  [NodeType.GEMINI]: GeminiNode,
  [NodeType.ANTHROPIC]: AnthropicNode,
- [NodeType.OPENAI]: OpenAiNode,
+ [NodeType.OPENAI]: OpenAiNode, [NodeType.DISCORD]: DiscordNode,[NodeType.SLACK]:SlackNode,
 } as const satisfies NodeTypes;
 
 export type RegisteredNodeType=keyof typeof nodeComponents;

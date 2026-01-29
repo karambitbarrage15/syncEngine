@@ -12,6 +12,7 @@ import { stripeTriggerChannel } from "./channels/stripe-trigger";
 import { geminiChannel } from "./channels/gemini";
 import { openaiChannel } from "./channels/openai";
 import { anthropicChannel } from "./channels/anthropic";
+import { discordChannel } from "./channels/discord";
 
 export const executeWorkflow = inngest.createFunction(
   {
@@ -20,13 +21,15 @@ export const executeWorkflow = inngest.createFunction(
   },
   {
     event: "workflows/execute.workflow",
-    channels: [httpRequestChannel(),
+    channels: [
+      httpRequestChannel(),
       manualTriggerChannel(),
       googleFormTriggerChannel(),
       stripeTriggerChannel(),
       geminiChannel(),
       openaiChannel(),
       anthropicChannel(),
+      discordChannel(),
     ],
   },
   async ({ event, step, publish }) => {
@@ -69,6 +72,16 @@ if(!workflow){
 
       return topologicalSort(nodes, connections);
     });
+    //toprevent from injections
+    const userId=await step.run("find-user-id",async()=>{
+      const workflow=await prisma.workflow.findUniqueOrThrow({
+        where:{id:workflowId},
+        select:{
+          userId:true,
+        }
+      })
+      return workflow.userId;
+    })
 
     /* -----------------------------
        EXECUTE WORKFLOW
@@ -96,6 +109,7 @@ if(!workflow){
           nodeId: node.id,
           context,
           step,
+          userId,
           publish,
         });
 
