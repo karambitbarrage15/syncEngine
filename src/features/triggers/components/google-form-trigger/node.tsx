@@ -23,7 +23,7 @@ return (
 <GoogleFormTriggerDialog open={dialogOpen} onOpenChange={setDialogOpen}/>
 <BaseTriggerNode 
 {...props}
-icon="/logos/stripe.svg"
+icon="/logos/googleform.svg"
 
 name="Google Form"
 description="When form is submitted"

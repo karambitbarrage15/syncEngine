@@ -32,7 +32,22 @@ const triggerNodes :NodeTypeOption[]=[
   icon:"/logos/googleform.svg",}, { type:NodeType.STRIPE_TRIGGER,
   label:"Stripe Event",
   description:"Runs flow when a Stripe Event is captured ",
-  icon:"/logos/stripe.svg",}
+  icon:"/logos/stripe.svg",},{ type:NodeType.GEMINI,
+  label:"Gemini",
+  description:"Uses Gemini to generate text",
+  icon:"/logos/gemini.svg",},{ type:NodeType.OPENAI,
+  label:"Open AI",
+  description:"Uses Open AI to generate text ",
+  icon:"/logos/openai.svg",},{ type:NodeType.ANTHROPIC,
+  label:"Anthropic",
+  description:"Uses Anthropic to generate text ",
+  icon:"/logos/anthropic.svg",}, { type:NodeType.DISCORD,
+  label:"Discord",
+  description:"Send a message to Discord",
+  icon:"/logos/discord.svg",},{ type:NodeType.SLACK,
+  label:"Slack",
+  description:"Send a message to Slack",
+  icon:"/logos/slack.svg",}
 
 ];const executionNodes :NodeTypeOption[]=[
  { type:NodeType.HTTP_REQUEST,
