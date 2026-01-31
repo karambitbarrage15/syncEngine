@@ -6,6 +6,7 @@ import {prisma} from "@/lib/db";
 import { geminiChannel } from "@/inngest/channels/gemini";
 
 import {generateText} from "ai";
+import { decrypt } from "@/lib/encryption";
 Handlebars.registerHelper("json",(context)=>{
   const stringified=JSON.stringify(context,null,2);
   const safeString=new Handlebars.SafeString(stringified);
@@ -89,7 +90,7 @@ if(!credential){
 }
 
 const google=createGoogleGenerativeAI({
-  apiKey:credential.value,
+  apiKey:decrypt(credential.value),
 
 });
 try{
