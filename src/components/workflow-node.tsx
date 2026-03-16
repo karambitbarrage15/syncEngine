@@ -7,70 +7,57 @@ import { Button } from "./ui/button";
 
 interface WorkflowNodeProps {
   children: ReactNode;
-  showToolbar?:boolean;
+  showToolbar?: boolean;
   onDelete?: () => void;
   onSettings?: () => void;
-  name?:string ;
-  description?:string;
+  name?: string;
+  description?: string;
 }
 
 export const WorkflowNode = ({
   children,
-  showToolbar=true,
+  showToolbar = true,
   onDelete,
   onSettings,
   name,
   description,
 }: WorkflowNodeProps) => {
   return (
-    <div className="relative rounded-lg border bg-background px-4 py-3 shadow-sm">
+    // ✅ THIS div must stretch
+    <div className="relative w-full h-full rounded-lg border bg-background shadow-sm">
+      
       {/* Toolbar */}
       {showToolbar && (
         <NodeToolbar>
-          <Button
-                size="sm"
-                variant="ghost"
-                onClick={onSettings}
-              >
-                <SettingsIcon className="size-4" />
-              </Button>
-            
-            
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={onDelete}
-              >
-                <TrashIcon className="size-4" />
-              </Button>
-           
+          <Button size="sm" variant="ghost" onClick={onSettings}>
+            <SettingsIcon className="size-4" />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onDelete}>
+            <TrashIcon className="size-4" />
+          </Button>
         </NodeToolbar>
       )}
 
-      {/* Node content */}
-      <div>{children}
-{name&&(
-  <NodeToolbar
-  position={Position.Bottom}
-  isVisible
-  className="max-w-[200px] text-center" 
-  ><p className="font-medium">
-    {name}
-  </p>
-<div>
-  {description && (
-    <p className="text-muted-foreground truncate text-sm">
-      {description}
-    </p>
-  )}
-</div>
-
-  </NodeToolbar>
-)}
-
-
+      {/* ✅ Content layer (no padding here) */}
+      <div className="w-full h-full">
+        {children}
       </div>
 
+      {/* ✅ Label layer (separate, padded, floating) */}
+      {name && (
+        <NodeToolbar
+          position={Position.Bottom}
+          isVisible
+          className="max-w-[200px] text-center"
+        >
+          <p className="font-medium">{name}</p>
+          {description && (
+            <p className="text-muted-foreground truncate text-sm">
+              {description}
+            </p>
+          )}
+        </NodeToolbar>
+      )}
     </div>
   );
 };

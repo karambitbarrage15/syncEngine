@@ -53,7 +53,8 @@ export const BaseTriggerNode = memo(({
       <NodeStatusIndicator
       status={status}
       variant="border"
-      className="rounded-l-2xl"
+      className="rounded-l-2xl
+      "
 
       >
       <BaseNode onDoubleClick={onDoubleClick} className="rounded-l-2xl relative group">
@@ -61,7 +62,7 @@ export const BaseTriggerNode = memo(({
           {typeof Icon === "string" ? (
             <Image src={Icon} alt={name} width={16} height={16} />
           ) : (
-            <Icon className="size-4 text-muted-foreground" />
+            <Icon className="size-6 text-muted-foreground" />
           )}
 
           {children}
@@ -72,7 +73,9 @@ export const BaseTriggerNode = memo(({
             position={Position.Right}
           />
         </BaseNodeContent>
-      </BaseNode></NodeStatusIndicator>
+      </BaseNode>
+      
+      </NodeStatusIndicator>
     </WorkflowNode>
   );
 });

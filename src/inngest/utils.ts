@@ -1,7 +1,7 @@
 import type { Node, Connection } from "@xyflow/react";
 import toposort from "toposort";
 import { inngest } from "./client";
-
+import { createId } from "@paralleldrive/cuid2";
 /**
  * Converts React Flow connections into a topologically sorted list of nodes.
  * Throws if a cycle exists.
@@ -69,5 +69,6 @@ export const sendWorkflowExecution=async(data:{
 })=>{
   return inngest.send({
     name:"workflows/execute.workflow",data,
+    id:createId(),
   })
 }

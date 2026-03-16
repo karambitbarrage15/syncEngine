@@ -285,7 +285,7 @@ export const EntityItems=({
   return (
     <Link href={href} prefetch>
 <Card className={cn("p-4 shadow-none hover:shadow cursor-pointer",isRemoving&&"opacity-50 cursor-not-allowed",className)}>
-<CardContent className="flex flex -row items-center justify-between p-8">
+<CardContent className="flex-row items-center justify-between p-8">
 <div className="flex items-center gap-3"> {image}
 <div>
   <CardTitle className="text-base font-medium">{title}</CardTitle>
