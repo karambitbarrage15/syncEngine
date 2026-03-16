@@ -22,8 +22,9 @@ export const BaseNode = forwardRef<HTMLDivElement, BaseNodeProps>(
         ref={ref}
         tabIndex={0}
         className={cn(
-          "relative rounded-sm border border-muted-foreground bg-card text-card-foreground hover:bg-accent",
-          "[.react-flow\\_\\_node.selected_&]:border-muted-foreground",
+          // Keep this NORMAL — trigger shape is handled elsewhere
+          "relative w-full h-full rounded-md border border-slate-400 bg-card text-card-foreground hover:bg-accent focus:outline-none",
+          "[.react-flow\\_\\_node.selected_&]:border-slate-500",
           "[.react-flow\\_\\_node.selected_&]:shadow-lg",
           className,
         )}
@@ -31,6 +32,7 @@ export const BaseNode = forwardRef<HTMLDivElement, BaseNodeProps>(
       >
         {children}
 
+        {/* Status icons */}
         {status === "error" && (
           <XCircleIcon className="absolute right-0.5 bottom-0.5 size-2 text-red-700 stroke-3" />
         )}
@@ -48,8 +50,6 @@ export const BaseNode = forwardRef<HTMLDivElement, BaseNodeProps>(
 );
 
 BaseNode.displayName = "BaseNode";
-
-
 
 /* ------------------------------------------------------------------ */
 /* Header                                                              */
@@ -70,8 +70,6 @@ export function BaseNodeHeader({
   );
 }
 
-
-
 /* ------------------------------------------------------------------ */
 /* Header Title                                                        */
 /* ------------------------------------------------------------------ */
@@ -88,8 +86,6 @@ export function BaseNodeHeaderTitle({
     />
   );
 }
-
-
 
 /* ------------------------------------------------------------------ */
 /* Content                                                             */
@@ -108,8 +104,6 @@ export function BaseNodeContent({
   );
 }
 
-
-
 /* ------------------------------------------------------------------ */
 /* Footer                                                              */
 /* ------------------------------------------------------------------ */
@@ -122,7 +116,7 @@ export function BaseNodeFooter({
     <div
       data-slot="base-node-footer"
       className={cn(
-        "flex flex-col items-center gap-y-2 border-t px-3 pt-2 pb-3",
+        "flex flex-col items-center gap-y-2 border-t border-slate-300 px-3 pt-2 pb-3",
         className,
       )}
       {...props}

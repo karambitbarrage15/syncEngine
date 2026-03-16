@@ -18,7 +18,7 @@ import { discordChannel } from "./channels/discord";
 export const executeWorkflow = inngest.createFunction(
   {
     id: "execute-workflow",
-    retries: 0,
+    retries: process.env.NODE_ENV==="production"?3:0,
 
     // ✅ SINGLE SOURCE OF FAILURE HANDLING
     onFailure: async ({ event }) => {

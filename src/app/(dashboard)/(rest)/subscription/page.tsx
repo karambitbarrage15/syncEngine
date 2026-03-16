@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 const Page = () => {
-  const testAi = trpc.testAi.useMutation({
+  const testAi = trpc.ai.testAi.useMutation({
     onSuccess: () => {
       toast.success("Success");
     },
@@ -22,3 +22,4 @@ const Page = () => {
 };
 
 export default Page;
+ 
