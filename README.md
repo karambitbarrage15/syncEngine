@@ -18,7 +18,7 @@ SyncEngine enables users to connect apps, define triggers, process data through 
 ![Various Workflows](./assests/various_workflows.png)
 
 ## 📸 Workflow Builder
-![Workflow Canvas](./assests/Drag%20and%20drop%20canvas.png)
+![Workflow Canvas](./assests/Drag&drop_canvas.png)
 ## 🤖 AI Node Configuration
 ![Gemini Configuration](./assests/Gemini_Conf.png)
 
