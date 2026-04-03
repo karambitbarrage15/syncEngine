@@ -6,6 +6,41 @@ SyncEngine enables users to connect apps, define triggers, process data through 
 
 ---
 
+## ⚡ Real-time Execution
+![Workflow Execution](./assests/workflow_executions.png)
+
+## 🔌 Supported Integrations
+![All Services](./assests/all_services.png)
+## 🔐 Authentication
+![Login](./assests/login.png)
+
+## 🧩 Multiple Workflow Views
+![Various Workflows](./assests/various_workflows.png)
+
+## 📸 Workflow Builder
+![Workflow Canvas](./assests/Drag&drop_canvas.png)
+## 🤖 AI Node Configuration
+![Gemini Configuration](./assests/Gemini_Conf.png)
+
+## 🌐 HTTP Request Node
+![HTTP Request](./assests/http_req.png)
+
+## 🖱️ Manual Trigger Node
+![Manual Trigger](./assests/manual_trigger.png)
+
+## 💬 Slack Node Configuration
+![Slack Configuration](./assests/slack_conf.png)
+
+## 💳 Billing Portal
+![Billing Portal](./assests/payment&biling1.png)
+
+## 🧾 Subscription & Invoice Management
+![Billing Management](./assests/payment&biling2.png)
+
+
+
+## 🚀 Live Workflow Execution
+![Realtime Execution](./assests/realtime execution.png)
 ## ✨ Features
 
 * **Visual Workflow Builder** – Create multi-step workflows with triggers, actions, and conditional branches.
